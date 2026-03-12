@@ -1,5 +1,5 @@
 # itunes-client
-Simple itunes client for interacting with their api
+Simple itunes client for interacting with the api
 
 ## Live demo
 
