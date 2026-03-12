@@ -1,0 +1,201 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        body {
+            font-family: Arial, Helvetica, sans-serif;
+            margin: 20px;
+            background: #f5f7fa;
+            color: #222;
+        }
+
+        input[type="text"] {
+            padding: 8px 10px;
+            font-size: 16px;
+            width: 60%;
+            max-width: 420px;
+            border: 1px solid #ccd0d6;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+
+        button {
+            padding: 8px 12px;
+            font-size: 16px;
+            margin-left: 8px;
+            cursor: pointer;
+            background: #007bff;
+            color: white;
+            border: none;
+            border-radius: 6px;
+        }
+
+        button:hover { background: #0069e6; }
+
+        #result { margin-top: 16px; }
+
+        .track-card {
+            background: white;
+            border-radius: 8px;
+            box-shadow: 0 6px 18px rgba(30, 40, 60, 0.06);
+            padding: 10px;
+            margin: 10px 0;
+            display: flex;
+            gap: 12px;
+            align-items: center;
+        }
+
+        .track-card img { width: 100px; height: 100px; border-radius: 6px; object-fit: cover; }
+
+        .track-card h3 { margin: 0 0 6px 0; font-size: 18px; }
+
+        .track-card p { margin: 2px 0; color: #444; }
+
+        .track-card a { color: #007bff; text-decoration: none; }
+
+        .track-card a:hover { text-decoration: underline; }
+
+        @media (max-width: 600px) {
+            .track-card { flex-direction: column; align-items: flex-start; }
+            .track-card img { width: 100%; height: auto; }
+            input[type="text"] { width: 100%; max-width: none; }
+        }
+    </style>
+</head>
+<body>
+    <input type="text" placeholder="search something..." />
+    <button>
+        Search
+    </button>
+    <div id="result"></div>
+
+    <script src="./itunes-client.js"></script>
+    <script>
+        const searchInput = document.querySelector('input');
+        const searchButton = document.querySelector('button');
+        const resultDiv = document.querySelector('#result');
+
+        const itunesClient = new ITunesClient();
+
+        function formatMillis(ms) {
+            if (!ms) return '';
+            const totalSeconds = Math.floor(ms / 1000);
+            const minutes = Math.floor(totalSeconds / 60);
+            const seconds = totalSeconds % 60;
+            return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+        }
+
+        function renderResults(results) {
+            resultDiv.innerHTML = '';
+            if (!results || !results.results || results.results.length === 0) {
+                resultDiv.textContent = 'No results found';
+                return;
+            }
+
+            results.results.forEach(item => {
+                const card = document.createElement('div');
+                card.className = 'track-card';
+                card.style.border = '1px solid #ddd';
+                card.style.padding = '8px';
+                card.style.margin = '8px 0';
+                card.style.display = 'flex';
+                card.style.gap = '10px';
+                card.style.alignItems = 'center';
+
+                const img = document.createElement('img');
+                img.src = item.artworkUrl100 || item.artworkUrl60 || item.artworkUrl30 || '';
+                img.alt = item.trackName || item.collectionName || 'artwork';
+                img.width = 100;
+                img.height = 100;
+
+                const meta = document.createElement('div');
+                meta.style.flex = '1';
+
+                const title = document.createElement('h3');
+                title.textContent = item.trackName || item.collectionName || 'Unknown Title';
+                title.style.margin = '0 0 4px 0';
+
+                const artist = document.createElement('p');
+                artist.style.margin = '0';
+                const artistLink = document.createElement('a');
+                artistLink.href = item.artistViewUrl || '#';
+                artistLink.textContent = item.artistName || 'Unknown Artist';
+                artistLink.target = '_blank';
+                artist.appendChild(document.createTextNode('Artist: '));
+                artist.appendChild(artistLink);
+
+                const collection = document.createElement('p');
+                collection.style.margin = '0';
+                const collLink = document.createElement('a');
+                collLink.href = item.collectionViewUrl || '#';
+                collLink.textContent = item.collectionName || '';
+                collLink.target = '_blank';
+                collection.appendChild(document.createTextNode('Album: '));
+                collection.appendChild(collLink);
+
+                const genre = document.createElement('p');
+                genre.style.margin = '0';
+                genre.textContent = `Genre: ${item.primaryGenreName || ''}`;
+
+                const extra = document.createElement('p');
+                extra.style.margin = '4px 0 0 0';
+                const release = item.releaseDate ? item.releaseDate.split('T')[0] : '';
+                extra.textContent = `Released: ${release} • Duration: ${formatMillis(item.trackTimeMillis)}`;
+
+                const audioWrap = document.createElement('div');
+                audioWrap.style.marginTop = '6px';
+                if (item.previewUrl) {
+                    const audio = document.createElement('audio');
+                    audio.controls = true;
+                    audio.src = item.previewUrl;
+                    audio.style.width = '100%';
+                    audioWrap.appendChild(audio);
+                }
+
+                const linkRow = document.createElement('div');
+                linkRow.style.marginTop = '6px';
+                const openLink = document.createElement('a');
+                openLink.href = item.trackViewUrl || item.collectionViewUrl || '#';
+                openLink.textContent = 'Open in iTunes';
+                openLink.target = '_blank';
+                linkRow.appendChild(openLink);
+
+                meta.appendChild(title);
+                meta.appendChild(artist);
+                meta.appendChild(collection);
+                meta.appendChild(genre);
+                meta.appendChild(extra);
+                meta.appendChild(audioWrap);
+                meta.appendChild(linkRow);
+
+                card.appendChild(img);
+                card.appendChild(meta);
+
+                resultDiv.appendChild(card);
+            });
+        }
+
+        searchButton.addEventListener('click', async () => {
+            const query = searchInput.value;
+            if (!query) return;
+
+            resultDiv.textContent = 'Loading...';
+
+            try {
+                const results = await itunesClient.search(query);
+                renderResults(results);
+            } catch (error) {
+                if (error instanceof OfflineError) {
+                    resultDiv.textContent = 'Offline: ' + error.message;
+                } else {
+                    resultDiv.textContent = error.message || 'An error occurred while fetching results.';
+                }
+                console.error(error);
+            }
+        });
+    </script>
+</body>
+</html>
