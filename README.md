@@ -1,13 +1,22 @@
 # itunes-client
 Simple itunes client for interacting with their api
 
-Html script tag 👇
+## Live demo
+
+<a href="https://blazeinferno64.github.io/itunes-client/">
+
+```
+https://blazeinferno64.github.io/itunes-client/
+```
+</a>
+
+## Html script tag 👇
 
 ```html
 <script src="https://raw.githubusercontent.com/BlazeInferno64/itunes-client/refs/heads/main/itunes-client.js"></script>
 ```
 
-# Api usage:
+## Api usage:
 
 ```js
 const client = new ITunesClient();
