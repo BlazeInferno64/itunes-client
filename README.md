@@ -16,6 +16,12 @@ https://blazeinferno64.github.io/itunes-client/
 <script src="https://raw.githubusercontent.com/BlazeInferno64/itunes-client/refs/heads/main/itunes-client.js"></script>
 ```
 
+or if you wanna use locally then do (you gotta download the file first tho)
+
+```html
+<script src="./itunes-client.js"></script>
+```
+
 ## Api usage:
 
 ```js
