@@ -35,6 +35,8 @@ client.search("Bohemian Rhapsody")
         console.error(err);
     });
 
+
+// If you wanna cancel your api call then sinply use 👇 
 client.cancel("User navigated away.");
 ```
 
