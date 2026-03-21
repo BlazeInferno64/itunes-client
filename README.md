@@ -41,6 +41,4 @@ client.cancel("User navigated away.");
 
 ## For Node.js support
 
-Currently under development will be released soon!
-
-|-----|
+> Currently under development will be released soon!
